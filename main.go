@@ -1,10 +1,11 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"net/http"
 	"os"
+
+	"golang.org/x/net/html"
 )
 
 const BaseUrl = "http://www.69shu.com/"
@@ -16,10 +17,36 @@ func printUsage() {
 	fmt.Println("  kindle-email  (optional) Kindle email to send ebook to")
 }
 
+func processBookUrl(url string) {
+	resp, err := http.Get(url)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	tokenizer := html.NewTokenizer(resp.Body)
+	for {
+		tt := tokenizer.Next()
+		switch {
+		case tt == html.ErrorToken:
+			// End of document.
+			return
+		case tt == html.StartTagToken:
+			token := tokenizer.Token()
+			fmt.Println(token.Data)
+		}
+	}
+}
+
+// Download and parse chapter URLs.
+func processChapterUrl(url string, ch chan string, chFinished chan bool) {
+}
+
 func main() {
 	args := os.Args[1:]
 
-	if len(args) < 2 {
+	numOfArgs := len(args)
+	if numOfArgs < 2 || numOfArgs > 3 {
 		printUsage()
 		os.Exit(1)
 	}
@@ -35,7 +62,10 @@ func main() {
 	}
 	defer resp.Body.Close()
 
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(resp.Body)
-	fmt.Printf(buf.String())
+	processBookUrl(url)
+
+	if numOfArgs == 3 {
+		kindleEmail := args[2]
+		fmt.Printf("Sending \"%s\" to %s.\n", bookName, kindleEmail)
+	}
 }
