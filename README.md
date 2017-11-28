@@ -1,8 +1,8 @@
 # 69shu MOBI maker
 
-Utility to create .mobi ebooks from *69shu.com*.
+Utility to create .mobi ebooks from [http://www.69shu.com][].
 
 ## Development requirements
 
-- Go
-- Calibre (w/ ebook-convert command-line tool)
+- `go` version go1.9.2 
+- `ebook-convert` (calibre 3.12.0)
