@@ -59,30 +59,44 @@ func getChildWithTag(parent *html.Node, tag string) *html.Node {
 	return nil
 }
 
-func parseBookHtmlNode(node *html.Node) {
+func getChildTextString(parent *html.Node) string {
+	for text := parent.FirstChild; text != nil; text = text.NextSibling {
+		if text.Type == html.TextNode {
+			return text.Data
+		}
+	}
+	return ""
+}
+
+func getChapterListNode(node *html.Node) *html.Node {
 	if node.Type == html.ElementNode && node.Data == "div" {
 		if nodeIsOfClass(node, "mu_contain") {
-			// Check if mu_h1 class element exists. Which means is not the complete chapter list.
+			// Check if "mu_h1" class element exists, meaning is not the complete chapter list.
 			if getChildOfClass(node, "div", "mu_h1") == nil {
-				list := getChildOfClass(node, "ul", "mulu_list")
-				if list != nil {
-					for li := list.FirstChild; li != nil; li = li.NextSibling {
-						if li.Type == html.ElementNode {
-							link := getChildWithTag(li, "a")
-							for text := link.FirstChild; text != nil; text = text.NextSibling {
-								if text.Type == html.TextNode {
-									fmt.Println(text.Data)
-								}
-							}
-							fmt.Println(getHref(link))
-						}
-					}
-				}
+				return getChildOfClass(node, "ul", "mulu_list")
 			}
 		}
 	}
 	for c := node.FirstChild; c != nil; c = c.NextSibling {
-		parseBookHtmlNode(c)
+		list := getChapterListNode(c)
+		if list != nil {
+			return list
+		}
+	}
+	return nil
+}
+
+func parseBookHtmlNode(node *html.Node) {
+	list := getChapterListNode(node)
+	if list != nil {
+		fmt.Println("list is not nil")
+		for li := list.FirstChild; li != nil; li = li.NextSibling {
+			if li.Type == html.ElementNode {
+				link := getChildWithTag(li, "a")
+				fmt.Println(getChildTextString(link))
+				fmt.Println(getHref(link))
+			}
+		}
 	}
 }
 
